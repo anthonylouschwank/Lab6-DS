@@ -1,0 +1,9 @@
+metrica,valor
+videos totales,293
+canales unicos (videos),97
+comentarios totales,406
+autores unicos (comentarios),332
+videos con al menos un comentario,19
+canales con al menos un video comentado,8
+categorias distintas de video,11
+"consultas de busqueda distintas (source_query, videos)",21

@@ -1,0 +1,3 @@
+tabla,llave_primaria,n_filas,n_valores_unicos,duplicados
+youtube_videos,video_id,293,293,0
+youtube_comments,comment_id,406,406,0

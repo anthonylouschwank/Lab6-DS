@@ -1,0 +1,11 @@
+metrica,valor
+comentarios totales,406.0
+textos originales vacios,0.0
+textos limpios vacios (todo el contenido era stopword/URL/puntuacion),1.0
+duplicados exactos en texto_original,2.0
+duplicados exactos en texto_limpio,5.0
+comentarios con al menos un hashtag,1.0
+comentarios con al menos una mencion,5.0
+comentarios con al menos un emoji,61.0
+caracteres promedio texto_original,139.2
+caracteres promedio texto_limpio,99.6

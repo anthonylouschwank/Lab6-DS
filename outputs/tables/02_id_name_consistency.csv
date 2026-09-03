@@ -1,0 +1,10 @@
+chequeo,ok
+channel_id -> channel_name unico (videos),True
+channel_id -> channel_handle unico (videos),True
+author_channel_id -> author_name unico (comments),True
+channel_id -> channel_name unico (comments),True
+upload_date == publish_date (videos),True
+owner_handle == channel_handle (videos),True
+todo video_id de comments existe en videos,True
+video_id unico en videos (llave primaria),True
+comment_id unico en comments (llave primaria),True

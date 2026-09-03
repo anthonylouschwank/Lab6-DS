@@ -1,0 +1,12 @@
+variable,problema,tratamiento
+viewer_rating (comments),100% valores faltantes (406/406),Se descarta del analisis; no aporta informacion.
+is_pinned (comments),Constante (False en el 100% de los registros),Se conserva en el CSV por trazabilidad pero se excluye de analisis por falta de varianza.
+upload_date (videos),Coincide con publish_date en el 100% de los casos (redundante),Se usa unicamente publish_date en los analisis.
+owner_handle (videos),Coincide con channel_handle en el 100% de los casos (redundante),Se usa unicamente channel_handle.
+published_time / published_text,"Fecha relativa (ej. 'hace 2 dias'), depende del momento de recoleccion y no es reconstruible a fecha exacta.","No se convierte a fecha absoluta; se usa publish_date (ISO 8601) de videos para toda cronologia. En comments no existe equivalente exacto, por lo que el orden temporal de comentarios queda como limitacion."
+like_count_text (comments),46% de valores en blanco (no es NaN explicito sino cadena vacia),Se interpreta como 0 likes visibles (comportamiento normal de la interfaz de YouTube) y se marca con like_count_was_blank para auditoria.
+view_count_text (videos),"13 valores faltantes; formato de texto localizado ('2,390 vistas')",Se usa la columna view_count (ya numerica) como fuente principal; view_count_text solo se parsea para verificar consistencia (view_count_mismatch).
+description_snippet (videos),"Fragmento truncado de la descripcion, redundante y parcial",Se prioriza description completa para analisis de texto; description_snippet no se usa.
+reply_count (comments),No identifica autores de las respuestas (aclaracion explicita del enunciado),Se usa unicamente como medida de intensidad de reaccion al comentario principal; nunca como arista autor-autor.
+description (videos),"1 registro contiene caracteres de reemplazo Unicode (U+FFFD), indicando perdida irreversible de codificacion en el texto original.","Se conserva el registro (no se elimina), pero se documenta que ese texto especifico no es confiable para analisis de contenido caracter por caracter."
+query_hits / keywords / dataset_sources,Texto con estructura de lista almacenado como string,"Se parsean con ast.literal_eval a listas reales (query_hits_list, keywords_list) antes de analizarlas."

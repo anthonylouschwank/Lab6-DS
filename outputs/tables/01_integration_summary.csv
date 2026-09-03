@@ -1,0 +1,8 @@
+metrica,valor
+comentarios totales,406.0
+comentarios asociados a un video (match),406.0
+comentarios sin video asociado (huerfanos),0.0
+videos totales,293.0
+videos con >=1 comentario en la muestra,19.0
+videos sin comentarios en la muestra,274.0
+porcentaje de videos cubiertos por comentarios,6.48

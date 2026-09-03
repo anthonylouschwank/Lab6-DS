@@ -1,0 +1,4 @@
+variable,n,media,mediana,std,min,max
+videos.view_count,293,60430.09,1175.0,515798.31,2,8190449
+comments.reply_count,406,0.13,0.0,0.58,0,7
+comments.like_count,406,5.73,1.0,30.66,0,405
