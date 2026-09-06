@@ -12,22 +12,27 @@ data/
   raw/            youtube_videos.csv, youtube_comments.csv (datos originales, sin modificar)
   processed/      salidas de la limpieza (videos_clean.csv, comments_clean.csv, merge)
 src/
-  config.py                  rutas y constantes compartidas
-  text_utils.py               limpieza de texto, parseo de conteos y listas
+  config.py                    rutas y constantes compartidas
+  text_utils.py                limpieza de texto, parseo de conteos y listas
   setup_nltk.py                descarga de stopwords en español
   p1_load_integrate.py         Ejercicio 1: carga e integración
   p2_quality_cleaning.py       Ejercicio 2: calidad, limpieza y preprocesamiento
   p3_eda.py                    Ejercicio 3: análisis exploratorio
   p4_bipartite_network.py      Ejercicio 4: red bipartita autor-video
-  p5_network_projections.py    Ejercicio 5: proyecciones
-  p6_topology_fragmentation.py Ejercicio 6: topologia y fragmentacion
-  p7_communities.py            Ejercicio 7: comunidades
-  run_all.py                   ejecuta 1 a 7 en orden
+  p5_network_projections.py    Ejercicio 5: proyecciones autor-autor / video-video
+  p6_topology_fragmentation.py Ejercicio 6: topología y fragmentación
+  p7_communities.py            Ejercicio 7: comunidades (Louvain)
+  p8_centrality.py             Ejercicio 8: centralidad y nodos puente
+  p9_sentiment.py               Ejercicio 9: análisis de sentimiento
+  run_all.py                   ejecuta 1 a 9 en orden
+tests/
+  test_network_analysis.py     controles con redes pequeñas verificables a mano
 outputs/
-  tables/         tablas generadas (prefijo 01_, 02_, 03_; red en tables/network/)
-  figures/        figuras generadas (prefijo 03_, 04_)
+  tables/         tablas generadas (prefijo 01_ a 09_; red en tables/network/)
+  figures/        figuras generadas (prefijo 03_ a 09_)
 report/
-  avance_informe.md            informe de avance (ejercicios 1 a 4)
+  informe_final.md / .pdf      informe completo (Ejercicios 1 a 10)
+  avance_informe.md            informe de avance entregado el 3 de septiembre (Ejercicios 1 a 4)
 requirements.txt
 ```
 
@@ -46,7 +51,7 @@ pip install -r requirements.txt
 python src/setup_nltk.py
 ```
 
-Ejecutar todo el pipeline (ejercicios 1 a 7):
+Ejecutar todo el pipeline (Ejercicios 1 a 9):
 
 ```bash
 cd src
@@ -62,101 +67,74 @@ python p1_load_integrate.py
 python p2_quality_cleaning.py
 python p3_eda.py
 python p4_bipartite_network.py
+python p5_network_projections.py
+python p6_topology_fragmentation.py
+python p7_communities.py
+python p8_centrality.py
+python p9_sentiment.py
+```
+
+Controles automatizados sobre redes pequeñas con resultado verificable a mano:
+
+```bash
+python -m unittest discover -s tests -v
 ```
 
 Las tablas quedan en `outputs/tables/` y `data/processed/`, y las figuras en
-`outputs/figures/`. La tabla de nodos/aristas de la red bipartita queda en
-`outputs/tables/network/` (CSV y un `.graphml` para abrir en Gephi si se desea).
+`outputs/figures/`. Las tablas de nodos/aristas de cada red (bipartita,
+proyecciones, comunidades) quedan en `outputs/tables/network/` (CSV y
+`.graphml` para abrir en Gephi).
+
+### Generar el informe en PDF
+
+`report/informe_final.md` es la fuente del informe completo. Para
+regenerar el PDF (requiere [pandoc](https://pandoc.org/) y una
+distribución LaTeX con `xelatex`, p. ej. MiKTeX o TeX Live; también puede
+instalarse `pandoc` vía `pip install pypandoc_binary` sin depender de un
+instalador del sistema):
+
+```bash
+python -c "import pypandoc; pypandoc.convert_file('report/informe_final.md', 'pdf', outputfile='report/informe_final.pdf', extra_args=['--pdf-engine=xelatex', '--resource-path=report'])"
+```
 
 ## Dependencias principales
 
-pandas, numpy, matplotlib, networkx, nltk (stopwords español), wordcloud,
-emoji, unidecode, python-louvain (para la detección de comunidades de la
-segunda entrega). Ver `requirements.txt` para versiones exactas.
+pandas, numpy, matplotlib, networkx + scipy (topología, centralidad,
+PageRank), nltk (stopwords español), wordcloud, emoji, unidecode, y
+**pysentimiento** (análisis de sentimiento en español, Ejercicio 9) que a
+su vez instala `torch` y `transformers` como dependencias — la primera
+ejecución de `p9_sentiment.py` descarga el modelo `robertuito-sentiment-
+analysis` desde Hugging Face (~500 MB, requiere conexión a internet la
+primera vez; luego queda cacheado localmente). Ver `requirements.txt` para
+versiones exactas.
 
-## Nota metodológica importante
+## Notas metodológicas importantes
 
-El conjunto `youtube_comments.csv` solo contiene comentarios de **19 de los
-293 videos** (6.5%). La red, el análisis de concentración y las conclusiones
-de este avance se refieren a esa submuestra de 19 videos y sus autores, no a
-la totalidad del conjunto de videos. Esta limitación se documenta en detalle
-en `report/avance_informe.md`.
+- El conjunto `youtube_comments.csv` solo contiene comentarios de **19 de
+  los 293 videos** (6.5%). Toda la red, el análisis de concentración, las
+  proyecciones, la detección de comunidades y las conclusiones se refieren
+  a esa submuestra de 19 videos y sus autores, no a la totalidad del
+  conjunto de videos. Ver el detalle en `report/informe_final.md`.
+- Las proyecciones autor-autor y video-video representan co-participación
+  o audiencia compartida, **no** amistad, acuerdo, conversación ni
+  similitud temática. `reply_count` nunca se usa para crear aristas
+  autor-autor: no identifica a los autores de las respuestas.
+- La transitividad y el *clustering* de la proyección autor-autor están
+  inflados por construcción (proyectar un video muy comentado crea una
+  clique completa entre sus comentaristas); la proyección video-video es
+  la lectura estructural más confiable y la que se usa para detectar
+  comunidades (Ejercicio 7).
+- Louvain (Ejercicio 7) usa pesos, resolución 1 y semilla 42 fija para
+  reproducibilidad; no garantiza el óptimo global de modularidad.
+- Los puntos de articulación (Ejercicio 8) distinguen puentes **críticos**
+  (única conexión entre dos partes de la red) de puentes **redundantes**
+  (ya existe otra conexión); no todo autor con intermediación > 0 es un
+  punto de articulación real.
+- El sentimiento (Ejercicio 9) se calcula sobre `texto_original`, no sobre
+  `texto_limpio`: limpiar el texto antes de clasificar borraría señales
+  (acentos, orden de palabras, formato del emoji) que el modelo usa.
 
 ## Enlaces
 
 - Repositorio: https://github.com/anthonylouschwank/Lab6-DS
 - Espacio colaborativo del grupo: _pendiente de agregar_
-
-## Continuación: ejercicios 5 a 7
-
-`python src/run_all.py` ejecuta ahora las etapas **1 a 7**. Para ejecutar
-solamente la continuación sobre las salidas existentes de la etapa 4:
-
-```bash
-python src/p5_network_projections.py
-python src/p6_topology_fragmentation.py
-python src/p7_communities.py
-```
-
-- `p5_network_projections.py`: proyecciones completas autor–autor (peso =
-  videos distintos compartidos) y video–video (peso = autores distintos
-  compartidos), tablas de nodos/aristas, GraphML y comparación estructural.
-- `p6_topology_fragmentation.py`: métricas, distribución de grados,
-  componentes y asignaciones por nodo, top de grados y tablas de periferia.
-- `p7_communities.py`: Louvain ponderado sobre videos, membresías, resumen,
-  autores y términos frecuentes de hasta tres comunidades principales.
-
-Las nuevas tablas se guardan en `outputs/tables/network/` y las siete
-figuras nuevas en `outputs/figures/`, con prefijos `05_`, `06_` y `07_`.
-Las proyecciones tienen nombres `author_projection` y `video_projection`.
-Las tablas de nodos conservan los aislados y permiten reconstruir las
-redes junto con sus tablas de aristas.
-
-### Criterios de interpretación y reproducción
-
-Las proyecciones representan co-participación o audiencia compartida,
-sin demostrar amistad, acuerdo, conversación ni similitud temática.
-El aislamiento corresponde únicamente a la muestra observada.
-
-La densidad general es `2E / (N(N-1))`; la densidad bipartita se guarda
-por separado como `E / (n_autores * n_videos)`. Las componentes se numeran
-por tamaño descendente, desempatando por ID. Se considera pequeña una
-componente de hasta 3 nodos, grado bajo un grado de hasta 2 y pocos autores
-hasta 2 autores por video. Estos umbrales son descriptivos y quedan
-identificados mediante columnas booleanas en las tablas de periferia.
-
-La [transitividad](https://networkx.org/documentation/stable/reference/algorithms/generated/networkx.algorithms.cluster.transitivity.html)
-cuenta el cierre global de tríadas. El
-[clustering medio](https://networkx.org/documentation/stable/reference/algorithms/generated/networkx.algorithms.cluster.average_clustering.html)
-promedia los coeficientes locales, incluyendo los ceros. Ambos se calculan
-sin pesos solo en las proyecciones; quedan vacíos, como no aplicables, en
-la bipartita. En autores, los videos generan grupos completamente
-conectados al proyectar, lo que puede elevar estas métricas por construcción.
-
-[Louvain](https://networkx.org/documentation/stable/reference/algorithms/generated/networkx.algorithms.community.louvain.louvain_communities.html)
-usa pesos, resolución 1 y semilla 42. La modularidad compara la fuerza de
-conexión interna con un modelo nulo basado en grados ponderados. Las
-comunidades son agrupaciones estructurales, no grupos sociales confirmados;
-los videos aislados permanecen como comunidades unitarias. Se registran
-la versión de NetworkX y los parámetros en `07_community_metrics.csv`.
-
-Las tres comunidades para caracterización se eligen por cantidad de
-comentarios, desempatando por cantidad de videos e ID de comunidad.
-`07_community_members.csv` ordena sus videos por participación;
-`07_community_authors.csv` identifica autores y su actividad;
-`07_community_terms.csv` reúne palabras, bigramas, hashtags y keywords.
-Los términos reutilizan el texto limpio existente: describen frecuencias,
-no temas confirmados ni sentimiento. Los autores pueden participar en más
-de una comunidad, por lo que sus conteos no deben sumarse como únicos globales.
-
-`share_comments` es una proporción entre 0 y 1; la intensidad se expresa
-como comentarios por autor, comentarios por video y peso interno de la
-proyección. `07_comment_community_sentiment.csv` conserva los IDs de
-comentario, video y autor junto con la comunidad, y deja el sentimiento
-vacío con estado `pendiente_ejercicio_9`. Los ejercicios 8 a 10 siguen pendientes.
-
-Controles adicionales sobre redes pequeñas con resultados conocidos:
-
-```bash
-python -m unittest discover -s tests -v
-```

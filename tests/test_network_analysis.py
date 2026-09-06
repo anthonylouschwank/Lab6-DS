@@ -11,6 +11,7 @@ sys.path.insert(0, str(Path(__file__).resolve().parents[1] / 'src'))
 from p5_network_projections import project
 from p6_topology_fragmentation import component_tables, topology_metrics
 from p7_communities import detect_communities
+from p8_centrality import compute_centralities
 
 
 class NetworkAnalysisTests(unittest.TestCase):
@@ -52,6 +53,35 @@ class NetworkAnalysisTests(unittest.TestCase):
         self.assertEqual(detect_communities(graph), (mapping, modularity))
         self.assertEqual(len(detect_communities(nx.empty_graph(3))[0]), 3)
         self.assertEqual(detect_communities(nx.Graph())[0], {})
+
+    def test_centrality_star_bridge_is_articulation_point(self):
+        # 'p' une dos estrellas separadas (p-x, p-y) que de otro modo
+        # quedarian desconectadas: debe ser el unico punto de articulacion
+        # y tener mayor intermediacion que cualquier hoja.
+        graph = nx.Graph()
+        graph.add_weighted_edges_from([('x', 'p', 1), ('p', 'y', 1), ('p', 'a', 1), ('p', 'b', 1)])
+        table, articulation = compute_centralities(graph)
+        self.assertEqual(len(table), graph.number_of_nodes())
+        self.assertEqual(articulation, {'p'})
+        row = table.set_index('node_id')
+        self.assertGreater(row.loc['p', 'betweenness_centrality'], 0)
+        for leaf in ['x', 'y', 'a', 'b']:
+            self.assertEqual(row.loc[leaf, 'betweenness_centrality'], 0)
+        self.assertTrue(row.loc['p', 'is_articulation_point'])
+        self.assertFalse(row.loc['x', 'is_articulation_point'])
+
+    def test_centrality_symmetric_cycle_has_no_bridge(self):
+        # K_{2,2} (a,b contra x,y): cualquier nodo se puede quitar sin
+        # desconectar el resto -> sin puntos de articulacion, e
+        # intermediacion igual para los cuatro nodos por simetria.
+        graph = nx.Graph()
+        graph.add_weighted_edges_from([('a', 'x', 8), ('a', 'y', 1), ('b', 'x', 2), ('b', 'y', 5)])
+        table, articulation = compute_centralities(graph)
+        self.assertEqual(articulation, set())
+        betweenness = table.set_index('node_id')['betweenness_centrality']
+        self.assertAlmostEqual(betweenness['a'], betweenness['b'])
+        self.assertAlmostEqual(betweenness['x'], betweenness['y'])
+        self.assertAlmostEqual(betweenness['a'], betweenness['x'])
 
     def test_louvain_uses_weighted_structure(self):
         graph = nx.cycle_graph(4)

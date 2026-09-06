@@ -1,4 +1,4 @@
-"""Ejecuta en orden los scripts de los ejercicios 1 a 7 del laboratorio."""
+"""Ejecuta en orden los scripts de los ejercicios 1 a 9 del laboratorio."""
 import p1_load_integrate
 import p2_quality_cleaning
 import p3_eda
@@ -6,6 +6,8 @@ import p4_bipartite_network
 import p5_network_projections
 import p6_topology_fragmentation
 import p7_communities
+import p8_centrality
+import p9_sentiment
 
 
 def main():
@@ -29,6 +31,12 @@ def main():
 
     print("\n########## EJERCICIO 7: Comunidades ##########")
     p7_communities.main()
+
+    print("\n########## EJERCICIO 8: Centralidad y nodos puente ##########")
+    p8_centrality.main()
+
+    print("\n########## EJERCICIO 9: Analisis de sentimiento ##########")
+    p9_sentiment.main()
 
 
 if __name__ == "__main__":
