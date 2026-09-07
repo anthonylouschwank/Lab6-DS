@@ -31,7 +31,7 @@ outputs/
   tables/         tablas generadas (prefijo 01_ a 09_; red en tables/network/)
   figures/        figuras generadas (prefijo 03_ a 09_)
 report/
-  informe_final.md / .pdf      informe completo (Ejercicios 1 a 10)
+  main.tex / main.pdf          informe final entregado (Ejercicios 1 a 10)
   avance_informe.md            informe de avance entregado el 3 de septiembre (Ejercicios 1 a 4)
 requirements.txt
 ```
@@ -84,57 +84,3 @@ Las tablas quedan en `outputs/tables/` y `data/processed/`, y las figuras en
 `outputs/figures/`. Las tablas de nodos/aristas de cada red (bipartita,
 proyecciones, comunidades) quedan en `outputs/tables/network/` (CSV y
 `.graphml` para abrir en Gephi).
-
-### Generar el informe en PDF
-
-`report/informe_final.md` es la fuente del informe completo. Para
-regenerar el PDF (requiere [pandoc](https://pandoc.org/) y una
-distribución LaTeX con `xelatex`, p. ej. MiKTeX o TeX Live; también puede
-instalarse `pandoc` vía `pip install pypandoc_binary` sin depender de un
-instalador del sistema):
-
-```bash
-python -c "import pypandoc; pypandoc.convert_file('report/informe_final.md', 'pdf', outputfile='report/informe_final.pdf', extra_args=['--pdf-engine=xelatex', '--resource-path=report'])"
-```
-
-## Dependencias principales
-
-pandas, numpy, matplotlib, networkx + scipy (topología, centralidad,
-PageRank), nltk (stopwords español), wordcloud, emoji, unidecode, y
-**pysentimiento** (análisis de sentimiento en español, Ejercicio 9) que a
-su vez instala `torch` y `transformers` como dependencias — la primera
-ejecución de `p9_sentiment.py` descarga el modelo `robertuito-sentiment-
-analysis` desde Hugging Face (~500 MB, requiere conexión a internet la
-primera vez; luego queda cacheado localmente). Ver `requirements.txt` para
-versiones exactas.
-
-## Notas metodológicas importantes
-
-- El conjunto `youtube_comments.csv` solo contiene comentarios de **19 de
-  los 293 videos** (6.5%). Toda la red, el análisis de concentración, las
-  proyecciones, la detección de comunidades y las conclusiones se refieren
-  a esa submuestra de 19 videos y sus autores, no a la totalidad del
-  conjunto de videos. Ver el detalle en `report/informe_final.md`.
-- Las proyecciones autor-autor y video-video representan co-participación
-  o audiencia compartida, **no** amistad, acuerdo, conversación ni
-  similitud temática. `reply_count` nunca se usa para crear aristas
-  autor-autor: no identifica a los autores de las respuestas.
-- La transitividad y el *clustering* de la proyección autor-autor están
-  inflados por construcción (proyectar un video muy comentado crea una
-  clique completa entre sus comentaristas); la proyección video-video es
-  la lectura estructural más confiable y la que se usa para detectar
-  comunidades (Ejercicio 7).
-- Louvain (Ejercicio 7) usa pesos, resolución 1 y semilla 42 fija para
-  reproducibilidad; no garantiza el óptimo global de modularidad.
-- Los puntos de articulación (Ejercicio 8) distinguen puentes **críticos**
-  (única conexión entre dos partes de la red) de puentes **redundantes**
-  (ya existe otra conexión); no todo autor con intermediación > 0 es un
-  punto de articulación real.
-- El sentimiento (Ejercicio 9) se calcula sobre `texto_original`, no sobre
-  `texto_limpio`: limpiar el texto antes de clasificar borraría señales
-  (acentos, orden de palabras, formato del emoji) que el modelo usa.
-
-## Enlaces
-
-- Repositorio: https://github.com/anthonylouschwank/Lab6-DS
-- Espacio colaborativo del grupo: _pendiente de agregar_
